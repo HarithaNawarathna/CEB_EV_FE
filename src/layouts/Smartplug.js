@@ -11,6 +11,7 @@ import FooterAdmin from "components/Footers/FooterAdmin.js";
 // views
 
 import Register from "views/smartplug/Register.js";
+import QRscan from "views/smartplug/QRscan.js";
 
 export default function Admin() {
   return (
@@ -23,7 +24,8 @@ export default function Admin() {
         <div className="px-4 md:px-10 mx-auto w-full -m-24">
           <Switch>
             <Route path="/smartplug/register" exact component={Register} />
-            
+            <Route path="/smartplug/qrscan" exact component={QRscan} />
+
             <Redirect from="/admin" to="/admin/dashboard" />
           </Switch>
           <FooterAdmin />

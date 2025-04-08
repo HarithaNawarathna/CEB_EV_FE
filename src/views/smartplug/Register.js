@@ -4,6 +4,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import QRCode from "qrcode";
 
 // import custom location icon
 const locationIcon = new L.Icon({
@@ -28,6 +29,22 @@ const Tabs = () => {
   const [stationName, setStationName] = useState("");
   const [stationStatus, setStationStatus] = useState("Available"); // default status
   const [location, setLocation] = useState([6.9271, 79.8612]); // default location (colombo)
+
+  // function to generate QR code and trigger download
+  const generateQRCode = async (id, name, lat, lng) => {
+    const qrData = JSON.stringify({ id, name, lat, lng });
+    try {
+      const qrUrl = await QRCode.toDataURL(qrData); // generate QR code as data URL
+      const link = document.createElement("a");
+      link.href = qrUrl;
+      link.download = `charging_station_${id}.png`; // download the QR code image with a name
+      document.body.appendChild(link);
+      link.click(); // trigger download
+      document.body.removeChild(link); // remove the link after download
+    } catch (error) {
+      console.error("error generating qr code:", error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,12 +72,15 @@ const Tabs = () => {
 
       const data = await response.json();
       console.log("charging station registered:", data);
-      
+
       // show success message
       toast.success("charging station registered successfully!", {
         position: "top-right",
         autoClose: 3000,
       });
+
+      // generate QR code with station data
+      await generateQRCode(data.id, stationName, location[0], location[1]);
 
       // reset form
       setStationName("");
@@ -69,7 +89,7 @@ const Tabs = () => {
 
     } catch (error) {
       console.error("error registering charging station:", error);
-      
+
       // show error message
       toast.error("failed to register charging station!", {
         position: "top-right",
@@ -84,7 +104,7 @@ const Tabs = () => {
         <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-lg rounded p-1">
           <div className="flex justify-between items-center mb-4 mt-4 relative w-full px-6">
             <div className="relative flex-1 flex flex-col ">
-              <span className="text-xxl mt-2 font-bold">charging station registration</span>
+              <span className="text-xxl mt-2 font-bold">Charging Station Registration</span>
             </div>
           </div>
 
@@ -111,9 +131,9 @@ const Tabs = () => {
                     onChange={(e) => setStationStatus(e.target.value)}
                     className="mt-1 p-2 w-full border rounded-md bg-white"
                   >
-                    <option value="Available">available</option>
-                    <option value="Occupied">occupied</option>
-                    <option value="Unplugged">unplugged</option>
+                    <option value="Available">Available</option>
+                    <option value="Occupied">Occupied</option>
+                    <option value="Unplugged">Unplugged</option>
                   </select>
                 </div>
 
@@ -147,7 +167,7 @@ const Tabs = () => {
                   }`} 
                   disabled={!location}
                 >
-                  register
+                  Register
                 </button>
               </form>
             </div>
