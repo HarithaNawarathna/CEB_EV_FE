@@ -64,6 +64,7 @@ const Tabs = () => {
           "content-type": "application/json",
         },
         body: JSON.stringify(stationData),
+        credentials: "include", // include credentials for session management
       });
 
       if (!response.ok) {

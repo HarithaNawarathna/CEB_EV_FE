@@ -15,9 +15,12 @@ import SmartPlug from "layouts/Smartplug.js";
 import Landing from "views/Landing.js";
 import Profile from "views/Profile.js";
 import Index from "views/Index.js";
+import SessionCheck from "views/SessionCheck";
 
 ReactDOM.render(
   <BrowserRouter>
+  <>
+  <SessionCheck />
     <Switch>
       {/* add routes with layouts */}
       <Route path="/admin" component={Admin} />
@@ -30,6 +33,7 @@ ReactDOM.render(
       {/* add redirect for first page */}
       <Redirect from="*" to="/" />
     </Switch>
+  </>
   </BrowserRouter>,
   document.getElementById("root")
 );
