@@ -62,6 +62,7 @@ const Tabs = () => {
         method: "POST",
         headers: {
           "content-type": "application/json",
+          Authorization: "Basic " + btoa("user:admin123"), // basic auth for the backend
         },
         body: JSON.stringify(stationData),
         credentials: "include", // include credentials for session management

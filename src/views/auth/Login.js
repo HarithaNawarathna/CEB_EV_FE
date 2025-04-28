@@ -38,7 +38,7 @@ export default function Login() {
         } else if (userlevel === "EE") {
           history.push("/admin/dashboardEE");
         } else {
-          history.push("/landing"); // Default page
+          history.push("/admin/maps"); // Default page
         }
         alert("Login successful");
         console.log("Login successful", data);
