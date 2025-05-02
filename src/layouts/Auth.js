@@ -1,5 +1,6 @@
 import React from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
+import ceblogo from "assets/img/ceb-logo-and-wave.png";
 
 // components
 
@@ -16,14 +17,19 @@ import FogotPassword from "views/auth/FogotPassword";
 export default function Auth() {
   return (
     <>
-      <Navbar transparent />
+      {/* <Navbar transparent /> */}
       <main>
-        <section className="relative w-full h-full py-40 min-h-screen">
+        <section
+          className="relative w-full h-full min-h-screen"
+          style={{ height: "100vh" }}
+        >
           <div
-            className="absolute top-0 w-full h-full bg-blueGray-800 bg-no-repeat bg-full"
+            className="absolute top-0 w-full h-full bg-white bg-no-repeat bg-full"
             style={{
-              backgroundImage:
-                "url(" + require("assets/img/register_bg_2.png").default + ")",
+              backgroundImage: `url(${ceblogo})`,
+              backgroundPosition: "bottom", 
+              opacity:0.6,
+              zIndex: -1,
             }}
           ></div>
           <Switch>
@@ -33,7 +39,7 @@ export default function Auth() {
             <Route path="/auth/forgot" exact component={FogotPassword} />
             <Redirect from="/auth" to="/auth/login" />
           </Switch>
-          <FooterSmall absolute />
+          {/* <FooterSmall absolute /> */}
         </section>
       </main>
     </>
