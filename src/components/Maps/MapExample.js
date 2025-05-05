@@ -14,6 +14,7 @@ function MapExample() {
 
   // Fetch charging stations from backend
   useEffect(() => {
+    fetch("http://127.0.0.1:8088/EVProject-0.0.1-SNAPSHOT/api/charging-stations")
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetched Locations:", data);

@@ -24,6 +24,7 @@ export default function Register() {
       return;
     }
     try {
+      const response = await fetch("http://127.0.0.1:8088/EVProject-0.0.1-SNAPSHOT/api/v1/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
