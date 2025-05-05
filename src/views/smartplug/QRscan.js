@@ -21,9 +21,19 @@ function QRscan() {
                 constraints={{ facingMode: "environment" }}
                 onResult={(result, error) => {
                   if (result) {
-                    setScanResult(result.text);
+                    const data = result.text;
+                    setScanResult(data);
+                
+                    fetch("http://localhost:8080/api/qrcodes", { // use your backend url
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({ data }), // match your dto field name
+                    }).catch(err => console.error("failed to save qr code:", err));
                   }
                 }}
+                
               />
               {scanResult && (
                 <div className="mt-4 p-2 bg-white shadow rounded text-center">

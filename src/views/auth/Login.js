@@ -10,7 +10,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:8081/api/v1/login", {
+      const response = await fetch("http://127.0.0.1:8088/EVProject-0.0.1-SNAPSHOT/api/v1/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
