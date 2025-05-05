@@ -58,7 +58,6 @@ const Tabs = () => {
 
     try {
       // post request to the spring boot backend using fetch
-      const response = await fetch("http://localhost:8081/api/charging-stations", {
         method: "POST",
         headers: {
           "content-type": "application/json",
