@@ -64,49 +64,28 @@ const Tabs = () => {
     console.log("station data:", stationData); // log the station data
 
     try {
-      // post request to the spring boot backend using fetch
       const response = await fetch("http://127.0.0.1:8088/EVProject-0.0.1-SNAPSHOT/api/charging-stations", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          Authorization: "Basic " + btoa("user:admin123"), // basic auth for the backend
         },
         body: JSON.stringify(stationData),
-        credentials: "include", // include credentials for session management
       });
-
       if (!response.ok) {
-        throw new Error("failed to register the charging station");
       }
-
       const data = await response.json();
-      console.log("charging station registered:", data);
-
-      // show success message
-      toast.success("charging station registered successfully!", {
         position: "top-right",
         autoClose: 3000,
       });
-
-      // generate QR code with station data
       await generateQRCode(data.id, stationName, location[0], location[1]);
-
-      // reset form
       setStationName("");
       setStationStatus("Available");
-      setLocation([6.9271, 79.8612]); // reset to default location
-
     } catch (error) {
-      console.error("error registering charging station:", error);
-
-      // show error message
-      toast.error("failed to register charging station!", {
         position: "top-right",
         autoClose: 3000,
       });
     }
   };
-
   return (
     <div className="flex flex-col items-center min-h-screen bg-gray-100 p-6">
       <div className="w-full max-w-4xl px-4">
