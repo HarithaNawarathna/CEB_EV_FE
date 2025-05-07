@@ -10,7 +10,6 @@ const SessionCheck = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await fetch("http://localhost:8081/api/v1/session", {
           method: "GET",
           credentials: "include",
         });
