@@ -30,6 +30,9 @@ const Tabs = () => {
   const [stationStatus, setStationStatus] = useState("Available"); // default status
   const [location, setLocation] = useState([6.9271, 79.8612]); // default location (colombo)
 
+  const [email, setEmail] = useState(sessionStorage.getItem("email"));
+  const [eaccountNo, seteaccountNo] = useState(sessionStorage.getItem("eAccountNo"));
+
   // function to generate QR code and trigger download
   const generateQRCode = async (id, name, lat, lng) => {
     const qrData = JSON.stringify({ id, name, lat, lng });
@@ -54,11 +57,15 @@ const Tabs = () => {
       status: stationStatus,
       latitude: location[0], // ensure correct field names
       longitude: location[1],
+      email: email,
+      eaccountNo: eaccountNo,
     };
+
+    console.log("station data:", stationData); // log the station data
 
     try {
       // post request to the spring boot backend using fetch
-      const response = await fetch("http://localhost:8081/api/charging-stations", {
+      const response = await fetch("http://127.0.0.1:8088/EVProject-0.0.1-SNAPSHOT/api/charging-stations", {
         method: "POST",
         headers: {
           "content-type": "application/json",
