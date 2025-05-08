@@ -15,6 +15,8 @@ export default function Register() {
     return strongPasswordRegex.test(password);
   };
 
+  const baseUrl = process.env.REACT_APP_API_BASE_URL;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validatePassword(password)) {
@@ -24,7 +26,7 @@ export default function Register() {
       return;
     }
     try {
-      const response = await fetch("http://127.0.0.1:8088/EVProject-0.0.1-SNAPSHOT/api/v1/register", {
+      const response = await fetch(`${baseUrl}/api/v1/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
