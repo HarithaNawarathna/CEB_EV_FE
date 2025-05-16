@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import QRCode from "qrcode";
+import { QrReader } from "react-qr-reader";
 
 // import custom location icon
 const locationIcon = new L.Icon({
@@ -27,54 +28,52 @@ const LocationPicker = ({ setLocation }) => {
 
 const Tabs = () => {
   const [stationName, setStationName] = useState("");
-  const [stationStatus, setStationStatus] = useState("Available"); // default status
+  const [identificationNumber, setIdentificationNumber] = useState("");
+  const [stationStatus, setStationStatus] = useState("Unplugged"); // default status
   const [location, setLocation] = useState([6.9271, 79.8612]); // default location (colombo)
 
   const [email, setEmail] = useState(sessionStorage.getItem("email"));
-  const [eaccountNo, seteaccountNo] = useState(sessionStorage.getItem("eAccountNo"));
+  const [eaccountNo, seteaccountNo] = useState(
+    sessionStorage.getItem("eAccountNo")
+  );
 
-  // function to generate QR code and trigger download
-  const generateQRCode = async (id, name, lat, lng) => {
-    const qrData = JSON.stringify({ id, name, lat, lng });
-    try {
-      const qrUrl = await QRCode.toDataURL(qrData); // generate QR code as data URL
-      const link = document.createElement("a");
-      link.href = qrUrl;
-      link.download = `charging_station_${id}.png`; // download the QR code image with a name
-      document.body.appendChild(link);
-      link.click(); // trigger download
-      document.body.removeChild(link); // remove the link after download
-    } catch (error) {
-      console.error("error generating qr code:", error);
-    }
-  };
+  const [scannedData, setScannedData] = useState(null);
 
   const baseUrl = process.env.REACT_APP_API_BASE_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!scannedData || !scannedData.id) {
+      toast.error("Please scan a valid QR code before submitting.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
     const stationData = {
       name: stationName,
       status: stationStatus,
-      latitude: location[0], // ensure correct field names
+      latitude: location[0],
       longitude: location[1],
       email: email,
       eaccountNo: eaccountNo,
+      identificationNumber: identificationNumber,
+      qrId: scannedData.id, // include scanned QR code id
     };
 
-    console.log("station data:", stationData); // log the station data
+    console.log("station data:", stationData);
 
     try {
-      // post request to the spring boot backend using fetch
       const response = await fetch(`${baseUrl}/api/charging-stations`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          Authorization: "Basic " + btoa("user:admin123"), // basic auth for the backend
+          Authorization: "Basic " + btoa("user:admin123"),
         },
         body: JSON.stringify(stationData),
-        credentials: "include", // include credentials for session management
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -84,29 +83,50 @@ const Tabs = () => {
       const data = await response.json();
       console.log("charging station registered:", data);
 
-      // show success message
-      toast.success("charging station registered successfully!", {
+      toast.success("Charging station registered successfully!", {
         position: "top-right",
         autoClose: 3000,
       });
 
-      // generate QR code with station data
-      await generateQRCode(data.id, stationName, location[0], location[1]);
-
       // reset form
       setStationName("");
+      setIdentificationNumber("");
       setStationStatus("Available");
-      setLocation([6.9271, 79.8612]); // reset to default location
-
+      setLocation([6.9271, 79.8612]);
+      setScannedData(null); // reset QR data
     } catch (error) {
       console.error("error registering charging station:", error);
-
-      // show error message
       toast.error("failed to register charging station!", {
         position: "top-right",
         autoClose: 3000,
       });
     }
+  };
+
+  const handleScan = async (data) => {
+  if (data) {
+    try {
+      const jsonData = JSON.parse(data);
+      setScannedData(jsonData);
+      console.log("scanned data:", jsonData);
+
+      toast.success("QR code scanned successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    } catch (err) {
+      console.error("invalid QR code:", err);
+      toast.error("Invalid QR code", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    }
+  }
+};
+
+
+  const handleError = (err) => {
+    console.error("qr scan error:", err);
   };
 
   return (
@@ -115,16 +135,19 @@ const Tabs = () => {
         <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-lg rounded p-1">
           <div className="flex justify-between items-center mb-4 mt-4 relative w-full px-6">
             <div className="relative flex-1 flex flex-col ">
-              <span className="text-xxl mt-2 font-bold">Charging Station Registration</span>
+              <span className="text-xxl mt-2 font-bold">
+                Charging Station Registration
+              </span>
             </div>
           </div>
 
           <div className="ml-0 p-5 bg-blueGray-100">
             <div className="p-5 mr-4 rounded bg-gray-100">
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* charging station name input */}
                 <div>
-                  <label className="block text-m font-medium text-gray-700">charging station name</label>
+                  <label className="block text-m font-medium text-gray-700">
+                    Station Name
+                  </label>
                   <input
                     type="text"
                     value={stationName}
@@ -134,48 +157,90 @@ const Tabs = () => {
                   />
                 </div>
 
-                {/* status dropdown */}
                 <div>
-                  <label className="block text-m font-medium text-gray-700">charging station status</label>
-                  <select
-                    value={stationStatus}
-                    onChange={(e) => setStationStatus(e.target.value)}
-                    className="mt-1 p-2 w-full border rounded-md bg-white"
-                  >
-                    <option value="Available">Available</option>
-                    <option value="Occupied">Occupied</option>
-                    <option value="Unplugged">Unplugged</option>
-                  </select>
+                  <label className="block text-m font-medium text-gray-700">
+                    Identification Number
+                  </label>
+                  <input
+                    type="text"
+                    value={identificationNumber}
+                    onChange={(e) => setIdentificationNumber(e.target.value)}
+                    className="mt-1 p-2 w-full border rounded-md"
+                    required
+                  />
                 </div>
 
-                {/* map for location selection */}
+                <div className="mt-8">
+                  <label className="block text-m font-medium text-gray-700">
+                    Scan QR Code
+                  </label>
+                  <div className="mt-2 border rounded-md overflow-hidden">
+                    <QrReader
+                      constraints={{ facingMode: "environment" }}
+                      onResult={(result, error) => {
+                        if (!!result) {
+                          handleScan(result.getText());
+                        }
+
+                        if (!!error) {
+                          handleError(error);
+                        }
+                      }}
+                      style={{ width: "100%" }}
+                    />
+                  </div>
+
+                  {scannedData && (
+                    <div className="mt-4 p-2 bg-white border rounded">
+                      <p>
+                        <strong>ID:</strong> {scannedData.id}
+                      </p>
+                      <p>
+                        <strong>Name:</strong> {scannedData.name}
+                      </p>
+                      <p>
+                        <strong>Latitude:</strong> {scannedData.lat}
+                      </p>
+                      <p>
+                        <strong>Longitude:</strong> {scannedData.lng}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 <div>
-                  <label className="mt-4 mb-1 block text-m font-medium text-gray-700">select location</label>
+                  <label className="mt-4 mb-1 block text-m font-medium text-gray-700">
+                    select location
+                  </label>
                   <div className="h-80 w-full border rounded-md overflow-hidden">
-                    <MapContainer 
-                      center={location} 
-                      zoom={13} 
+                    <MapContainer
+                      center={location}
+                      zoom={13}
                       className="h-full w-full"
                       style={{ height: "320px", width: "100%" }}
                     >
                       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                       <LocationPicker setLocation={setLocation} />
-                      {location && <Marker position={location} icon={locationIcon} />} {/* custom marker */}
+                      {location && (
+                        <Marker position={location} icon={locationIcon} />
+                      )}
                     </MapContainer>
                   </div>
                   {location && (
                     <p className="mt-2 text-sm text-gray-600">
-                      selected: {location[0].toFixed(6)}, {location[1].toFixed(6)}
+                      selected: {location[0].toFixed(6)},{" "}
+                      {location[1].toFixed(6)}
                     </p>
                   )}
                 </div>
 
-                {/* submit button */}
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className={`mt-4 px-4 py-2 rounded-lg ${
-                    location ? "bg-lightBlue-500 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed "
-                  }`} 
+                    location
+                      ? "bg-lightBlue-500 text-white"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed "
+                  }`}
                   disabled={!location}
                 >
                   Register
@@ -183,11 +248,9 @@ const Tabs = () => {
               </form>
             </div>
           </div>
-
         </div>
       </div>
 
-      {/* toast notifications */}
       <ToastContainer />
     </div>
   );
